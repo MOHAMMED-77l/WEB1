@@ -1,95 +1,76 @@
-<?php
-// إعداد متغيرات لتخزين النتائج وعرضها لاحقاً في الصفحة
-$result = "";
-$tableHtml = "";
-
-// التحقق مما إذا تم إرسال النموذج باستخدام طريقة POST
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $courses = $_POST['course'] ?? []; // استلام أسماء المواد [cite: 1311, 1312]
-    $credits = $_POST['credits'] ?? []; // استلام الساعات المعتمدة [cite: 1316, 1317]
-    $grades = $_POST['grade'] ?? []; // استلام الدرجات [cite: 1320, 1321]
-    
-    $totalPoints = 0;
-    $totalCredits = 0;
-
-    // بناء جدول النتائج برمجياً
-    $tableHtml = "<table>";
-    $tableHtml .= "<tr><th>Course</th><th>Credits</th><th>Grade</th><th>Grade Points</th></tr>";
-
-    for ($i = 0; $i < count($courses); $i++) {
-        $course = htmlspecialchars($courses[$i]);
-        $cr = floatval($credits[$i]);
-        $g = floatval($grades[$i]);
-
-        if ($cr <= 0) continue; // تجاهل المدخلات غير الصالحة [cite: 1352]
-
-        $pts = $cr * $g; // حساب نقاط المادة [cite: 1355]
-        $totalPoints += $pts;
-        $totalCredits += $cr;
-
-        $tableHtml .= "<tr><td>$course</td><td>$cr</td><td>$g</td><td>$pts</td></tr>";
-    }
-    $tableHtml .= "</table>";
-
-    // حساب المعدل النهائي وتحديد التفسير [cite: 1378, 1379]
-    if ($totalCredits > 0) {
-        $gpa = $totalPoints / $totalCredits;
-        
-        // منطق تحديد التقدير بناءً على المعدل [cite: 1380, 1384, 1387]
-        if ($gpa >= 3.7) {
-            $interpretation = "Distinction";
-        } elseif ($gpa >= 3.0) {
-            $interpretation = "Merit";
-        } elseif ($gpa >= 2.0) {
-            $interpretation = "Pass";
-        } else {
-            $interpretation = "Fail";
-        }
-
-        $result = "Your GPA is " . number_format($gpa, 2) . " ($interpretation)."; [cite: 1392, 1395]
-    } else {
-        $result = "No valid courses entered.";
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GPA Calculator - Step 2</title>
-    <link rel="stylesheet" href="style.css"> <script src="script.js"></script> </head>
-<body>
-    <h1>GPA Calculator</h1>
+    <title>GPA Calculator - Final Stage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3>GPA Calculator (AJAX & Bootstrap)</h3>
+        </div>
+        <div class="card-body">
+            <form id="gpaForm">
+                <div id="course-container">
+                    <div class="row mb-3 course-row">
+                        <div class="col-md-5">
+                            <input type="text" name="course[]" class="form-control" placeholder="Course Name" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" name="credits[]" class="form-control" placeholder="Credits" min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="grade[]" class="form-select">
+                                <option value="4.0">A (4.0)</option>
+                                <option value="3.0">B (3.0)</option>
+                                <option value="2.0">C (2.0)</option>
+                                <option value="1.0">D (1.0)</option>
+                                <option value="0.0">F (0.0)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary mb-3" onclick="addCourseRow()">+ Add Course</button>
+                <hr>
+                <button type="submit" class="btn btn-success w-100">Calculate GPA</button>
+            </form>
 
-    <?php if ($result != ""): ?>
-        <?php echo $tableHtml; ?>
-        <p><strong><?= $result ?></strong></p>
-    <?php endif; ?>
-
-    <form action="" method="post" onsubmit="return validateForm();">
-        <div id="courses">
-            <div class="course-row">
-                <label>Course: </label>
-                <input type="text" name="course[]" placeholder="e.g. Mathematics" required>
-                
-                <label>Credits: </label>
-                <input type="number" name="credits[]" placeholder="e.g. 3" min="1" required>
-                
-                <label>Grade: </label>
-                <select name="grade[]">
-                    <option value="4.0">A</option>
-                    <option value="3.0">B</option>
-                    <option value="2.0">C</option>
-                    <option value="1.0">D</option>
-                    <option value="0.0">F</option>
-                </select>
+            <div id="resultArea" class="mt-4" style="display:none;">
+                <div id="tableContent"></div>
+                <div class="alert alert-info mt-3" id="gpaDisplay"></div>
             </div>
         </div>
-        <br>
-        <button type="button" onclick="addCourse()">+ Add Course</button>
-        <br><br>
-        <input type="submit" value="Calculate GPA">
-    </form>
+    </div>
+</div>
+
+<script>
+// وظيفة إضافة صف مادة جديد
+function addCourseRow() {
+    let row = $('.course-row:first').clone();
+    row.find('input').val('');
+    $('#course-container').append(row);
+}
+
+// وظيفة AJAX لإرسال البيانات دون تحديث الصفحة
+$(document).ready(function() {
+    $('#gpaForm').on('submit', function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'process.php', // سنقوم بإنشاء هذا الملف الآن
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                let data = JSON.parse(response);
+                $('#tableContent').html(data.table);
+                $('#gpaDisplay').html('<strong>' + data.message + '</strong>');
+                $('#resultArea').fadeIn();
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
