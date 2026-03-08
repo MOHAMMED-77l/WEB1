@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Dev Lab1 - Styled</title>
+    <style>
+        /* أنماط النص العام */
+        body { font-family: sans-serif; }
+
+        /* Style 1: استخدام اللون الأحمر للعنوان الفرعي */
+        .style1 {
+            color: red;
+            text-align: center;
+        }
+        
+        /* Style 2: لون أخضر، معلومات عريضة على اليسار (مُعدل للعنوان) */
+        .style2 {
+            color: green;
+            font-size: 20px; /* تم تكبير حجم الخط */
+            font-weight: bold;
+            font-family: 'Cambria', serif;
+            text-align: left;
+            margin: 20px 0 5px 0; /* مسافات محسنة */
+        }
+        
+        /* Style 3: حجم الخط 16px، لون أسود للمعلومات (تم تكبيره قليلاً) */
+        .style3 {
+            font-size: 16px; 
+            color: black;
+            font-weight: normal; 
+            display: block; /* لجعل المعلومات تحت العنوان */
+            margin-top: 5px;
+        }
+        
+        /* Style 4: صورة على اليمين */
+        .style4 {
+            width: 250px;
+            height: 250px;
+            float: right;        /* وضع الصورة على اليمين */
+            margin-left: 20px;   /* مسافة بين الصورة والنص */
+        }
+        
+        /* لتنظيم العناصر وجعل الصورة تطفو بشكل صحيح */
+        .main-container {
+            width: 90%;
+            margin: auto;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="main-container">
+        <h1 style="color: black; text-align: center;">Welcome to my Web Site</h1>
+        
+        <img src="https://th.bing.com/th/id/OIP.nMYswYBIQhFS8f-kuw9pywHaHa?w=165&h=180&c=7&r=0&o=7&pid=1.7&rm=3" 
+             alt="University Logo" class="style4">
+        
+        <h2 class="style1">Web Development (Lab1)</h2>
+        
+        <h3 class="style2">Full name: <span class="style3">HOMCI MOHAMMED</span></h3>
+        <h3 class="style2">Age: <span class="style3">20 years old</span></h3>
+        <h3 class="style2">Class: <span class="style3">2nd LMD computer Science</span></h3>
+        <h3 class="style2">University: <span class="style3">University of EL OUED</span></h3>
+    </div>
+         
+</body>
+</html>
