@@ -1,31 +1,41 @@
-function addCourse() {
-    var row = document.createElement('div');
-    row.className = 'course-row';
-    row.innerHTML = `
-        <label>Course: </label>
-        <input type="text" name="course[]" placeholder="e.g. Mathematics" required>
-        <label>Credits: </label>
-        <input type="number" name="credits[]" placeholder="e.g. 3" min="1" required>
-        <label>Grade: </label>
-        <select name="grade[]">
-            <option value="4.0">A</option>
-            <option value="3.0">B</option>
-            <option value="2.0">C</option>
-            <option value="1.0">D</option>
-            <option value="0.0">F</option>
-        </select>
-        <button type="button" onclick="this.parentNode.remove()">Remove</button>`;
-    document.getElementById('courses').appendChild(row); 
-}
+$(document).ready(function () {
+    // 1. إضافة صف مادة جديد عند الضغط على الزر
+    $('#addCourse').click(function () {
+        var row = $('.course-row').first().clone(); // نسخ الصف الأول [cite: 637, 638]
+        row.find('input').val(''); // تفريغ القيم في الصف الجديد [cite: 639]
+        row.append('<div class="col-auto"><button type="button" class="btn btn-danger remove-row">X</button></div>'); [cite: 641, 650, 652]
+        $('#courses').append(row); // إضافة الصف للمجموعة [cite: 658]
+    });
 
-function validateForm() {
-    var courses = document.querySelectorAll('[name="course[]"]');
-    var credits = document.querySelectorAll('[name="credits[]"]');
-
-   
-    for (var i = 0; i < courses.length; i++) {
-        if (courses[i].value.trim() === "") {
-            alert("All course name fields are required.");
-            return false;
+    // 2. حذف صف المادة
+    $(document).on('click', '.remove-row', function () {
+        if ($('.course-row').length > 1) { // التأكد من عدم حذف كل الصفوف [cite: 664, 665]
+            $(this).closest('.course-row').remove(); [cite: 667]
         }
-    }
+    });
+
+    // 3. إرسال البيانات عبر AJAX
+    $('#gpaForm').submit(function (e) {
+        e.preventDefault(); // منع الصفحة من التحديث [cite: 685]
+        
+        $.ajax({
+            url: 'calculate.php',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json', [cite: 715, 717, 719, 721, 723]
+            success: function (response) {
+                if (response.success) { [cite: 726]
+                    // تحديد لون التنبيه بناءً على المعدل
+                    var alertClass = 'alert-info';
+                    if (response.gpa >= 3.7) alertClass = 'alert-success'; // Distinction [cite: 734, 735, 16]
+                    else if (response.gpa >= 3.0) alertClass = 'alert-info'; // Merit [cite: 736, 17]
+                    else if (response.gpa >= 2.0) alertClass = 'alert-warning'; // Pass [cite: 738, 739, 18]
+                    else alertClass = 'alert-danger'; // Fail [cite: 741, 744, 19]
+
+                    // عرض النتيجة والجدول
+                    $('#result').html('<div class="alert ' + alertClass + '">' + response.message + '</div>' + response.tableHtml); [cite: 748, 750, 751, 764, 766]
+                }
+            }
+        });
+    });
+});
